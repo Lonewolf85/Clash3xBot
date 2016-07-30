@@ -14,7 +14,7 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 import telegram
-from telegram import (ReplyKeyboardMarkup)
+from telegram import (ReplyKeyboardMarkup,ReplyKeyboardHide)
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
                           ConversationHandler)
 import logging
@@ -26,7 +26,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
-HOME, SEARCH_CLANS_NAME, SEARCH_CLANS_TAG, CLAN_INFO = range(4)
+HOME, CLANS, SEARCH_CLANS_NAME, SEARCH_CLANS_TAG, CLAN_INFO = range(5)
 
 temp_tag = ""
 
@@ -36,8 +36,8 @@ def start(bot, update):
 	user = update.message.from_user
 	logger.info("Bot Started : %s" % (user.first_name))
 	bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	reply_keyboard = [['Search Clans By Name', 'Search Clans By Tag']]
-	bot.sendMessage(update.message.chat_id, text='Hi Chief '+user.first_name+' ! Welcome !',reply_markup=ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True))
+	reply_keyboard = [['Clans', 'Bases'],['',''],['','']]
+	bot.sendMessage(update.message.chat_id, text='Hi Chief '+user.first_name+' ! Welcome !',reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard = True, one_time_keyboard=True,))
 	return HOME
 
 
@@ -45,10 +45,20 @@ def help(bot, update):
     bot.sendMessage(update.message.chat_id, text='Help!')
 
 
+def clans_main(bot,update):
+    user = update.message.from_user
+    bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
+    reply_keyboard = [['Search Clans By Name', 'Search Clans By Tag']]
+    bot.sendMessage(update.message.chat_id, text='Chief '+user.first_name+' ! Clans !',reply_markup=ReplyKeyboardMarkup(reply_keyboard, resize_keyboard = True, one_time_keyboard=False))
+    return CLANS
+
+def bases_main(bot,update):
+    return HOME
+
 #Search clans based on clan name
 def search_clans_name(bot, update):
 	bot.sendChatAction(chat_id=update.message.chat_id, action=telegram.ChatAction.TYPING)
-	bot.sendMessage(update.message.chat_id, text='Chief! Give me a name to search!')
+	bot.sendMessage(update.message.chat_id, text='Chief! Give me a name to search!', reply_markup = ReplyKeyboardHide())
 	return SEARCH_CLANS_NAME
 
 def search_by_name(bot, update):
@@ -115,7 +125,7 @@ def cancel(bot, update):
 
 def main():
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("token")
+    updater = Updater("225770137:AAEtlT534Xe4jOminmjeh2S3xP5dsJLfgug")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -132,7 +142,9 @@ def main():
         entry_points=[CommandHandler('start', start)],
 
         states={
-            HOME: [RegexHandler('^(Search Clans By Name)$', search_clans_name),RegexHandler('^(Search Clans By Tag)$', search_clans_tag),CommandHandler('start', start)],
+            HOME: [RegexHandler('^(Clans)$', clans_main),RegexHandler('^(Bases)$', bases_main),CommandHandler('start', start)],
+
+            CLANS: [RegexHandler('^(Search Clans By Name)$', search_clans_name),RegexHandler('^(Search Clans By Tag)$', search_clans_tag),CommandHandler('start', start)],
 
             SEARCH_CLANS_NAME: [MessageHandler([Filters.text], search_by_name),CommandHandler('start', start)],
 
